@@ -40,8 +40,19 @@ db.connect((err) => {
 // Middleware (Body parser)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+app.use(cors({
+    origin: 'https://fin-love.com',
+    optionsSuccessStatus: 200
+}));
 app.use(fileupload());
+
+// บังคับให้ใช้ HTTPS
+app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https') {
+        return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+});
 
 const rateLimit = require('express-rate-limit');
 
@@ -976,7 +987,6 @@ app.get('/api/stats/total-reported-users', async (req, res) => {
 });
 
 
-// Create an HTTPS server
-app.listen(port, () => {
+https.createServer(credentials, app).listen(port, () => {
     console.log(`Server running on port ${port}`);
 });
